@@ -72,6 +72,38 @@ int SharedService::UserLogin(const string& user, const string& pass, list<string
 	return 0;
 }
 
+int SharedService::LogOut(string account)
+{
+	
+	MysqlDB db;
+	Server& server = muduo::Singleton<Server>::instance();
+
+	try
+	{
+		db.Open(server.GetDbServerIp().c_str(),
+			server.GetDbUser().c_str(),
+			server.GetDbPass().c_str(),
+			server.GetDbName().c_str(),
+			server.GetDbServerPort());
+
+		stringstream ss;
+		ss<<"delete from t_active_user where account="<<"'"<<account<<"';";
+
+		db.ExecSQL(ss.str().c_str());
+		db.Commit();
+	}
+
+	catch (muduo::Exception& e)
+	{
+		LOG_INFO<<e.what();
+		db.Rollback();
+		return -1;
+	}
+
+	return 0;
+
+	
+}
 
 // зЂВс
 int SharedService::UserRegister(Account& account)

@@ -11,7 +11,7 @@ class IBankService
 {
 public:
 	// 用户登录
-	virtual int UserLogin(const string& user, const string& pass) = 0;
+	virtual int UserLogin(const string& user, const string& pass, list<string>& activeUsers) = 0;
 	// 开户
 	virtual int OpenAccount(Account& account) = 0;
 	// 销户

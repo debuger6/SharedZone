@@ -14,6 +14,7 @@ void UserLogin::Execute(SharedSession& session)
 	// 柜员登录名
 	string name;
 	jis>>name;
+	session.setAccount(name);
 	// 密码
 	char pass[16];
 	unsigned char ideaKey[16];
@@ -44,7 +45,7 @@ void UserLogin::Execute(SharedSession& session)
 	list<string> activeUsers;
 	int ret;
 	ret = dao.UserLogin(name, pass, activeUsers);
-
+	JOutStream& jos = session.GetJos();
 
 	if (ret == 0)
 	{
@@ -54,6 +55,7 @@ void UserLogin::Execute(SharedSession& session)
 		list<string>::const_iterator it;
 		for (it=activeUsers.begin(); it!=activeUsers.end(); ++it)
 		{
+			JOutStream josTmp;
 			// 包头cmd+len+cnt+seq+error_code+error_msg
 			josTmp<<cmd;
 			size_t lengthPos = josTmp.Length();	// len位置
@@ -84,6 +86,7 @@ void UserLogin::Execute(SharedSession& session)
 			jos.WriteBytes(josTmp.Data(), josTmp.Length());
 
 		}
+		return;
 	}
 	else if (ret == 1)
 	{
@@ -98,7 +101,6 @@ void UserLogin::Execute(SharedSession& session)
 		LOG_INFO<<error_msg;
 	}
 
-	JOutStream& jos = session.GetJos();
 	// 包头命令
 	jos<<cmd;
 	size_t lengthPos = jos.Length();

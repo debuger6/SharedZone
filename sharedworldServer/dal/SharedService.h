@@ -7,9 +7,11 @@ class SharedService : public ISharedService
 {
 public:
 	// 用户登录
-	int UserLogin(const string& user, const string& pass);
+	int UserLogin(const string& user, const string& pass, list<string>& activeUsers);
 	// 注册
 	int UserRegister(Account& account);
+	//退出
+	int LogOut(string account);
 	// 修改密码
 	int ChangePassword(Account& account, const string& newPass);
 	// 查询某日报表

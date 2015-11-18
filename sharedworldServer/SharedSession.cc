@@ -75,3 +75,8 @@ void SharedSession::DoAction()
 	muduo::Singleton<TransactionManager>::instance().DoAction(*this);  //实例化一个TransactionManager单例对象，并调用TransactionManager的DoAction(..)
 }
 
+void SharedSession::removeActiveUser()
+{
+	SharedService dao;
+	dao.LogOut(getAccount());
+}

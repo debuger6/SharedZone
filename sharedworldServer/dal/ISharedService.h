@@ -11,7 +11,7 @@ class ISharedService
 {
 public:
 	// ÓÃ»§µÇÂ¼
-	virtual int UserLogin(const string& user, const string& pass) = 0;
+	virtual int UserLogin(const string& user, const string& pass, list<string>& activeUsers) = 0;
 	// ×¢²á
 	virtual int UserRegister(Account& account) = 0;
 	// ĞŞ¸ÄÃÜÂë

@@ -31,6 +31,12 @@ void SharedServer::onConnection(const muduo::net::TcpConnectionPtr& conn)
      {
 		 conn->setContext(SharedSession());	// TcpConnection与一个SharedSession绑定
 	 }
+	 else
+	 {
+
+		 SharedSession* ss = boost::any_cast<SharedSession>(conn->getMutableContext()); //return context
+		 ss->removeActiveUser();
+	 }
 }
 
 void SharedServer::onMessage(const muduo::net::TcpConnectionPtr& conn,

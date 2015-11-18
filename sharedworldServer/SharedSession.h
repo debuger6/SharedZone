@@ -11,6 +11,7 @@
 #include "MD5.h"
 #include "Idea.h"
 #include <memory>
+#include "./dal/SharedService.h"
 
 #define CMD_LOGIN					0x01
 #define CMD_REGISTER			    0x02
@@ -70,11 +71,17 @@ public:
 	JOutStream& GetJos() { return jos_; }
 	void Clear() { jos_.Clear(); }
 
+	string getAccount(){return account_;}
+    void setAccount(string account){account_ = account;}
+
+	void removeActiveUser();
+
 private:
 	void Parse();
 	char buffer_[2048];
 	RequestPack* requestPack_;
 	JOutStream jos_;
+	string account_;
 };
 
 
