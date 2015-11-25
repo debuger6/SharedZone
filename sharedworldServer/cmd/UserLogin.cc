@@ -64,10 +64,13 @@ void UserLogin::Execute(SharedSession& session)
 		josres<<cmd_res;
 		size_t lengthPos = josres.Length();	// len位置
 		josres.Skip(2);			// 为len预留两个字节
+		josres<<cnt<<seq<<error_code;
+		josres.WriteBytes(error_msg, 30);
 		for (it=activeUsers.begin(); it!=activeUsers.end(); ++it)
 		{
 			josres<<*it;
 		}
+		josres<<"end";
 		{
 			size_t tailPos = josres.Length();
 			josres.Reposition(lengthPos);
