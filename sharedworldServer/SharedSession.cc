@@ -7,8 +7,12 @@
 #include <muduo/base/Singleton.h>
 
 #include <stdio.h>
-SharedSession::SharedSession()
+SharedSession::SharedSession(map<string, muduo::net::TcpConnectionPtr>& conns,
+	const muduo::net::TcpConnectionPtr conn) : conns_(conns),
+	conn_(conn)
 {
+	cout<<"conns2:"<<&conns_<<endl;
+	cout<<"conn2:"<<conn_<<endl;
 }
 
 SharedSession::~SharedSession()

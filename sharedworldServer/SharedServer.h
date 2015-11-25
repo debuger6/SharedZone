@@ -2,6 +2,8 @@
 #define SHARED_SERVER_H
 
 #include <muduo/net/TcpServer.h>
+#include <map>
+using namespace std;
 
 class SharedServer : boost::noncopyable
 {
@@ -18,6 +20,8 @@ private:
 	muduo::net::EventLoop* loop_;
 	muduo::net::TcpServer server_;
 	const static size_t kHeaderLen = 4;  //请求包头4个字节 cmd(2)+len(2)
+public:
+	map<string, muduo::net::TcpConnectionPtr> conns_;
 };
 
 #endif

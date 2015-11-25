@@ -2,16 +2,19 @@
 #define _SHARED_SESSION_H_
 
 #include <muduo/base/Logging.h>
-
+#include <muduo/net/TcpServer.h>
 #include "Types.h"
 #include "JInStream.h"
 #include "JOutStream.h"
 //#include "../Public/JUtil.h"
 //#include "../Public/Socket.h"
 #include "MD5.h"
+#include <map>
 #include "Idea.h"
 #include <memory>
 #include "./dal/SharedService.h"
+#include <iostream>
+using namespace std;
 
 #define CMD_LOGIN					0x01
 #define CMD_REGISTER			    0x02
@@ -24,6 +27,8 @@
 #define CMD_HISTORY_BILL			0x09
 #define CMD_ACCOUNT_HISTORY_BILL	0x0A
 #define CMD_CLOSE_ACCOUNT			0x0B
+
+#define CMD_USERLIST				0X10
 
 struct RequestHead
 {
@@ -57,7 +62,7 @@ struct ResponsePack
 class SharedSession
 {
 public:
-	SharedSession();
+	SharedSession(map<string, muduo::net::TcpConnectionPtr>& conns, const muduo::net::TcpConnectionPtr  conn);
 	~SharedSession();
 
 	void SetData(const char* data, size_t len);
@@ -76,12 +81,22 @@ public:
 
 	void removeActiveUser();
 
+	void setSessionType(string type){sessionType_ = type;}
+	string getSessionType(){return sessionType_;}
+	JOutStream& GetJosres(){return josres_;}
+
 private:
 	void Parse();
 	char buffer_[2048];
 	RequestPack* requestPack_;
 	JOutStream jos_;
 	string account_;
+
+	JOutStream josres_;
+	string sessionType_;
+public:
+	map<string, muduo::net::TcpConnectionPtr>& conns_;
+	const muduo::net::TcpConnectionPtr conn_;
 };
 
 

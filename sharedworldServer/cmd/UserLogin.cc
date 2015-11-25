@@ -46,13 +46,48 @@ void UserLogin::Execute(SharedSession& session)
 	int ret;
 	ret = dao.UserLogin(name, pass, activeUsers);
 	JOutStream& jos = session.GetJos();
+	JOutStream& josres = session.GetJosres();
 
 	if (ret == 0)
 	{
 		LOG_INFO<<"登录成功";
+		cout<<"ss addr:"<<&session<<endl;
+		session.conns_.insert(make_pair<string, muduo::net::TcpConnectionPtr>(name, session.conn_));
+		cout<<"conns3:"<<&session.conns_<<endl;
+		cout<<"conn3:"<<session.conn_<<endl;
+		cout<<"session.conns_ size:"<< session.conns_.size()<<endl;
 		uint16 cnt = static_cast<uint16>(activeUsers.size());
 		uint16 seq = 0;
 		list<string>::const_iterator it;
+		
+		uint16 cmd_res = 0x10;
+		josres<<cmd_res;
+		size_t lengthPos = josres.Length();	// len位置
+		josres.Skip(2);			// 为len预留两个字节
+		for (it=activeUsers.begin(); it!=activeUsers.end(); ++it)
+		{
+			josres<<*it;
+		}
+		{
+			size_t tailPos = josres.Length();
+			josres.Reposition(lengthPos);
+			josres<<(uint16)(tailPos + 8 - sizeof(ResponseHead));	// 包体+包尾长度
+
+			// 包尾
+			josres.Reposition(tailPos);
+			unsigned char hash[16];
+			MD5 md5;
+			md5.MD5Make(hash, (unsigned char const*)josres.Data(), josres.Length());
+			for (int i=0; i<8; ++i)
+			{
+				hash[i] = hash[i] ^ hash[i+8];						
+				hash[i] = hash[i] ^ ((cmd_res >> (i%2)) & 0xff);
+																										
+			}
+			josres.WriteBytes(hash, 8);
+		}
+
+		
 		for (it=activeUsers.begin(); it!=activeUsers.end(); ++it)
 		{
 			JOutStream josTmp;
@@ -79,7 +114,8 @@ void UserLogin::Execute(SharedSession& session)
 			md5.MD5Make(hash, (unsigned char const*)josTmp.Data(), josTmp.Length());
 			for (int i=0; i<8; ++i)
 			{
-				hash[i] = hash[i] ^ hash[i+8];																				  hash[i] = hash[i] ^ ((cmd >> (i%2)) & 0xff);
+				hash[i] = hash[i] ^ hash[i+8];
+				hash[i] = hash[i] ^ ((cmd >> (i%2)) & 0xff);
 																										
 			}
 			josTmp.WriteBytes(hash, 8);
