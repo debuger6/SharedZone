@@ -41,6 +41,19 @@ void SharedServer::onConnection(const muduo::net::TcpConnectionPtr& conn)
 		 cout<<"disconnecting...."<<endl;
 		 SharedSession* ss = boost::any_cast<SharedSession>(conn->getMutableContext()); //return context
 		 ss->removeActiveUser();
+		 muduo::net::Buffer response;
+		 muduo::net::Buffer response1;
+		 response.append(ss->GetJos().Data(), ss->GetJos().Length());
+		 response1 = response;
+		 ss->removeConn(conn);
+		 map<string, muduo::net::TcpConnectionPtr>::iterator mIter;
+	     for (mIter = conns_.begin(); mIter != conns_.end(); mIter++ )
+		 {
+			 cout<<"connsecond:"<<mIter->second<<endl;
+			mIter->second->send(&response);
+			response = response1;
+		}
+
 	 }
 }
 
@@ -65,6 +78,7 @@ void SharedServer::onMessage(const muduo::net::TcpConnectionPtr& conn,
 			response.append(ss->GetJos().Data(), ss->GetJos().Length());
 			response1.append(ss->GetJosres().Data(), ss->GetJosres().Length());
 			responseTemp = response1;
+			
 			ss->Clear();
 
 			map<string, muduo::net::TcpConnectionPtr>::iterator mIter;

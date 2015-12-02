@@ -2,6 +2,7 @@
 #include "MysqlDB.h"
 
 #include "../Server.h"
+#include "../SharedSession.h"
 #include <muduo/base/Logging.h>
 #include <muduo/base/Exception.h>
 #include "../Types.h"
@@ -9,7 +10,6 @@
 
 #include <sstream>
 using namespace std;
-
 
 int SharedService::UserLogin(const string& user, const string& pass, list<string>& activeUsers)
 {
@@ -72,7 +72,7 @@ int SharedService::UserLogin(const string& user, const string& pass, list<string
 	return 0;
 }
 
-int SharedService::LogOut(string account)
+int SharedService::LogOut(string account, JOutStream& jos, int len)
 {
 	
 	MysqlDB db;
@@ -91,6 +91,51 @@ int SharedService::LogOut(string account)
 
 		db.ExecSQL(ss.str().c_str());
 		db.Commit();
+
+
+		ss.clear();
+		ss.str("");
+		ss<<"select * from t_active_user;";
+		MysqlRecordset rs;
+		rs = db.QuerySQL(ss.str().c_str());
+		if (rs.GetRows()>0)
+		{
+			jos.Clear();
+			int16 error_code = 0;
+			char error_msg[31] = {0};
+			uint16 cmd = 0x10;
+			uint16 cnt = 0;
+			uint16 seq = 0;
+			jos<<cmd;
+			size_t lengthPos = jos.Length();
+			jos.Skip(2);
+			jos<<cnt<<seq<<error_code;
+			jos.WriteBytes(error_msg, 30);
+
+			for (int i=0; i<rs.GetRows(); ++i)
+			{
+				jos<<rs.GetItem(i, "account");
+			}
+			jos<<"end";
+			{
+				size_t tailPos = jos.Length();
+				jos.Reposition(lengthPos);
+				jos<<(uint16)(tailPos + 8 - len);
+
+				jos.Reposition(tailPos);
+				unsigned char hash[16];
+				MD5 md5;
+				md5.MD5Make(hash, (unsigned char const*)jos.Data(), jos.Length());
+				for (int i=0; i<8; ++i)
+				{
+					hash[i] = hash[i] ^ hash[i+8];
+					hash[i] = hash[i] ^ ((cmd>>(i%2))&0xff);
+				}
+				jos.WriteBytes(hash, 8);
+			}
+		}
+
+
 	}
 
 	catch (muduo::Exception& e)

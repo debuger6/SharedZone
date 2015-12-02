@@ -82,5 +82,18 @@ void SharedSession::DoAction()
 void SharedSession::removeActiveUser()
 {
 	SharedService dao;
-	dao.LogOut(getAccount());
+	dao.LogOut(getAccount(), jos_, sizeof(ResponseHead));
+}
+
+void SharedSession::removeConn(const muduo::net::TcpConnectionPtr conn)
+{
+	map<string, muduo::net::TcpConnectionPtr>::iterator mIter;
+	for (mIter = conns_.begin(); mIter != conns_.end(); ++mIter)
+	{
+		if (mIter->second == conn)
+		{
+			conns_.erase(mIter);
+			break;
+		}
+	}
 }

@@ -74,12 +74,13 @@ public:
 	void DoAction();
 
 	JOutStream& GetJos() { return jos_; }
-	void Clear() { jos_.Clear(); }
+	void Clear() { jos_.Clear(); josres_.Clear(); }
 
 	string getAccount(){return account_;}
     void setAccount(string account){account_ = account;}
 
 	void removeActiveUser();
+	void removeConn(const muduo::net::TcpConnectionPtr conn);
 
 	void setSessionType(string type){sessionType_ = type;}
 	string getSessionType(){return sessionType_;}

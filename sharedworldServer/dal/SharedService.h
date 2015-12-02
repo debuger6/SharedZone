@@ -2,7 +2,7 @@
 #define _SHARED_SERVICE_H_
 
 #include "ISharedService.h"
-
+#include "../JOutStream.h"
 class SharedService : public ISharedService
 {
 public:
@@ -11,7 +11,7 @@ public:
 	// 注册
 	int UserRegister(Account& account);
 	//退出
-	int LogOut(string account);
+	int LogOut(string account, JOutStream& jos, int len);
 	// 修改密码
 	int ChangePassword(Account& account, const string& newPass);
 	// 查询某日报表
