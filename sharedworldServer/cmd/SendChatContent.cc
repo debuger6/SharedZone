@@ -3,152 +3,58 @@
 #include "../SharedSession.h"
 #include <iostream>
 #include "../dal/SharedService.h"
+#include "CodeConverter.h"
 using namespace std;
 
 void SendChatContent::Execute(SharedSession& session)
 {
-	
+	CodeConverter codeConvert = CodeConverter("utf-8", "gb2312"); 
+
 	JInStream jis(session.GetRequestPack()->buf, session.GetRequestPack()->head.len);
 	uint16 cmd = session.GetCmd();
 
-	// ·¢ËÍÕßÓÃ»§Ãû
+	// å‘é€è€…ç”¨æˆ·å
 	string username;
-	jis>>username;
-//	session.setAccount(name);
-	//·¢ËÍµÄÁÄÌìÄÚÈÝ
+	char out[1000];
+	const int len = username.length();
+	char* c = new char[len+1];
+	strcpy(c, username.c_str());
+	codeConvert.convert(c, strlen(c), out, 1000);
+	string s(out);
+	jis>>s;
+	cout<<out<<endl;
+	cout<<username<<endl;
+	//å‘é€çš„èŠå¤©å†…å®¹
 	string content;
-	unsigned char ideaKey[16];
-	unsigned char buf[2];
-	buf[0] = (cmd >> 8) & 0xff;
-	buf[1] = cmd & 0xff;
+	jis>>content;
+	cout<<"send content:"<<content<<endl;
 	MD5 md5;
-/*	md5.MD5Make(ideaKey, buf, 2);
-	for (int i=0; i<8; ++i)
-	{
-		ideaKey[i] = ideaKey[i] ^ ideaKey[i+8];
-		ideaKey[i] = ideaKey[i] ^ ((cmd >> (i%2)) & 0xff);
-		ideaKey[i+8] = ideaKey[i] ^ ideaKey[i+8];
-		ideaKey[i+8] = ideaKey[i+8] ^ ((cmd >> (i%2)) & 0xff);
-	}
-	char encryptedPass[16];
-	jis.ReadBytes(encryptedPass, 16);
-	Idea idea;
-	// ½âÃÜ
-	idea.Crypt(ideaKey, (const unsigned char*)encryptedPass, (unsigned char *)content, content.length(), false);
-*/
 	int16 error_code = 0;
 	char error_msg[31] = {0};
 
 
-	int ret;
 	JOutStream& jos = session.GetJos();
 
-	if (ret == 0)
-	{
-		LOG_INFO<<"·¢ËÍ³É¹¦";
-		uint16 cnt = 1;
-		uint16 seq = 0;
-		list<string>::const_iterator it;
-		
-		uint16 cmd_res = 0x10;
-		josres<<cmd_res;
-		size_t lengthPos = josres.Length();	// lenÎ»ÖÃ
-		josres.Skip(2);			// ÎªlenÔ¤ÁôÁ½¸ö×Ö½Ú
-		josres<<cnt<<seq<<error_code;
-		josres.WriteBytes(error_msg, 30);
-		for (it=activeUsers.begin(); it!=activeUsers.end(); ++it)
-		{
-			josres<<*it;
-		}
-		josres<<"end";
-		{
-			size_t tailPos = josres.Length();
-			josres.Reposition(lengthPos);
-			josres<<(uint16)(tailPos + 8 - sizeof(ResponseHead));	// °üÌå+°üÎ²³¤¶È
 
-			// °üÎ²
-			josres.Reposition(tailPos);
-			unsigned char hash[16];
-			MD5 md5;
-			md5.MD5Make(hash, (unsigned char const*)josres.Data(), josres.Length());
-			for (int i=0; i<8; ++i)
-			{
-				hash[i] = hash[i] ^ hash[i+8];						
-				hash[i] = hash[i] ^ ((cmd_res >> (i%2)) & 0xff);
-																										
-			}
-			josres.WriteBytes(hash, 8);
-		}
-
-		
-		for (it=activeUsers.begin(); it!=activeUsers.end(); ++it)
-		{
-			JOutStream josTmp;
-			// °üÍ·cmd+len+cnt+seq+error_code+error_msg
-			josTmp<<cmd;
-			size_t lengthPos = josTmp.Length();	// lenÎ»ÖÃ
-			josTmp.Skip(2);			// ÎªlenÔ¤ÁôÁ½¸ö×Ö½Ú
-			josTmp<<cnt<<seq<<error_code;
-			seq++;
-			josTmp.WriteBytes(error_msg, 30);
-
-			//°üÌåaccount
-			josTmp<<*it;
-
-			// °üÍ·len×Ö¶Î
-			size_t tailPos = josTmp.Length();
-			josTmp.Reposition(lengthPos);
-			josTmp<<(uint16)(tailPos + 8 - sizeof(ResponseHead));	// °üÌå+°üÎ²³¤¶È
-			
-			// °üÎ²
-			josTmp.Reposition(tailPos);
-			unsigned char hash[16];
-			MD5 md5;
-			md5.MD5Make(hash, (unsigned char const*)josTmp.Data(), josTmp.Length());
-			for (int i=0; i<8; ++i)
-			{
-				hash[i] = hash[i] ^ hash[i+8];
-				hash[i] = hash[i] ^ ((cmd >> (i%2)) & 0xff);
-																										
-			}
-			josTmp.WriteBytes(hash, 8);
-			jos.WriteBytes(josTmp.Data(), josTmp.Length());
-
-		}
-		return;
-	}
-	else if (ret == 1)
-	{
-		error_code = 1;
-		strcpy(error_msg, "ÓÃ»§Ãû»òÃÜÂë´íÎó");
-		LOG_INFO<<error_msg;
-	}
-	else if (ret == -1)
-	{
-		error_code = -1;
-		strcpy(error_msg, "Êý¾Ý¿â´íÎó");
-		LOG_INFO<<error_msg;
-	}
-
-	// °üÍ·ÃüÁî
+	// åŒ…å¤´å‘½ä»¤
 	jos<<cmd;
 	size_t lengthPos = jos.Length();
 	jos.Skip(2);
-	// °üÍ·cnt¡¢seq¡¢error_code¡¢error_msg
+	// åŒ…å¤´cntã€seqã€error_codeã€error_msg
 	uint16 cnt = 0;
 	uint16 seq = 0;
 	jos<<cnt<<seq<<error_code;
 	jos.WriteBytes(error_msg, 30);
-	// °üÌåÎª¿Õ
-
-	// °üÍ·len
+	jos<<content;
+	jos<<"end";
 	size_t tailPos = jos.Length();
 	jos.Reposition(lengthPos);
-	jos<<static_cast<uint16>(tailPos + 8 - sizeof(ResponseHead)); // °üÌå³¤¶È + °üÎ²³¤¶È
+	jos<<(uint16)(tailPos + 8 - sizeof(ResponseHead));
 
-	// °üÎ²
+
+	// åŒ…å°¾
 	jos.Reposition(tailPos);
-	// ¼ÆËã°üÎ²
+	// è®¡ç®—åŒ…å°¾
 	unsigned char hash[16];
 	md5.MD5Make(hash, (const unsigned char*)jos.Data(), jos.Length());
 	for (int i=0; i<8; ++i)

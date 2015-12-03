@@ -29,6 +29,8 @@ using namespace std;
 #define CMD_CLOSE_ACCOUNT			0x0B
 
 #define CMD_USERLIST				0X10
+#define CMD_SEND_CONTENT			0x11
+#define CMD_SEND_REBACK				0x12
 
 struct RequestHead
 {

@@ -12,7 +12,7 @@ CXXFLAGS = -g -O0 -Wall -Wextra \
 LDFLAGS = -L$(MUDUO_LIBRARY) -lmuduo_net -lmuduo_base -lpthread -lrt -lmysqlclient
 
 VPATH=src:./cmd:./dal
-objects=main.o Server.o SharedServer.o SharedSession.o TransactionManager.o UserLogin.o Server.o Idea.o JInStream.o JOutStream.o StringUtil.o SystemConfig.o MD5.o UserRegister.o MysqlDB.o SharedService.o JUtil.o
+objects=main.o Server.o SharedServer.o SharedSession.o TransactionManager.o UserLogin.o Server.o Idea.o JInStream.o JOutStream.o StringUtil.o SystemConfig.o MD5.o UserRegister.o MysqlDB.o SharedService.o JUtil.o SendChatContent.o
 MyServer:$(objects)
 	g++ $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 main.o:

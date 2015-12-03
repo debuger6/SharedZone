@@ -71,28 +71,47 @@ void SharedServer::onMessage(const muduo::net::TcpConnectionPtr& conn,
 			SharedSession* ss = boost::any_cast<SharedSession>(conn->getMutableContext()); //return context
 			ss->SetData(buf->peek(), kHeaderLen + len);
 			ss->Process();
-			muduo::net::Buffer response;
-			muduo::net::Buffer response1;
-			muduo::net::Buffer responseTemp;
 
-			response.append(ss->GetJos().Data(), ss->GetJos().Length());
-			response1.append(ss->GetJosres().Data(), ss->GetJosres().Length());
-			responseTemp = response1;
-			
-			ss->Clear();
-
-			map<string, muduo::net::TcpConnectionPtr>::iterator mIter;
-			cout<<"map size:"<<conns_.size()<<endl;
-			conn->send(&response);
-
-			for (mIter = conns_.begin(); mIter != conns_.end(); mIter++ )
+			if (ss->GetCmd() == CMD_LOGIN)
 			{
-				if (mIter->second != conn)
+				muduo::net::Buffer response;
+				muduo::net::Buffer response1;
+				muduo::net::Buffer responseTemp;
+				response.append(ss->GetJos().Data(), ss->GetJos().Length());
+				response1.append(ss->GetJosres().Data(), ss->GetJosres().Length());
+				responseTemp = response1;
+				ss->Clear();
+				
+				conn->send(&response);
+				map<string, muduo::net::TcpConnectionPtr>::iterator mIter;
+				for (mIter = conns_.begin(); mIter != conns_.end(); mIter++ )
 				{
-					cout<<"f c:"<<mIter->second<<endl;
-					mIter->second->send(&response1);
+					if (mIter->second != conn)
+					{
+						cout<<"f c:"<<mIter->second<<endl;
+						mIter->second->send(&response1);
+					}
+					response1 = responseTemp;
 				}
-				response1 = responseTemp;
+			}
+			if (ss->GetCmd()==CMD_SEND_CONTENT)
+			{
+				muduo::net::Buffer response;
+				muduo::net::Buffer response1;
+				response.append(ss->GetJos().Data(), ss->GetJos().Length());
+				response1 = response;
+				ss->Clear();
+				map<string, muduo::net::TcpConnectionPtr>::iterator mIter;
+				for (mIter = conns_.begin(); mIter != conns_.end(); mIter++ )
+				{
+					if (mIter->second != conn)
+					{
+						cout<<"f c:"<<mIter->second<<endl;
+						mIter->second->send(&response);
+					}
+					response  = response1;
+				}
+
 			}
 			buf->retrieve(kHeaderLen+len);
 		}

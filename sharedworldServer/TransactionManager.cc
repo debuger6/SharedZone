@@ -1,6 +1,7 @@
 #include "TransactionManager.h"
 #include "cmd/UserLogin.h"
 #include "cmd/UserRegister.h"
+#include "cmd/SendChatContent.h"
 /*#include "cmd/CloseAccount.h"
 #include "cmd/ChangePassword.h"
 #include "cmd/Deposit.h"
@@ -17,6 +18,7 @@ TransactionManager::TransactionManager()
 {
 	m_actions[CMD_LOGIN] = new UserLogin;
 	m_actions[CMD_REGISTER] = new UserRegister;
+	m_actions[CMD_SEND_CONTENT] = new SendChatContent;
 /*	m_actions[CMD_OPEN_ACCOUNT] = new OpenAccount;
 	m_actions[CMD_DEPOSIT] = new Deposit;
 	m_actions[CMD_WITHDRAW] = new Withdrawal;
