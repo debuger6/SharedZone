@@ -15,19 +15,27 @@ void SendChatContent::Execute(SharedSession& session)
 
 	// 发送者用户名
 	string username;
-	char out[1000];
-	const int len = username.length();
-	char* c = new char[len+1];
-	strcpy(c, username.c_str());
-	codeConvert.convert(c, strlen(c), out, 1000);
-	string s(out);
-	jis>>s;
-	cout<<out<<endl;
+	jis>>username;
+
+	char userName[1000]={0};
+	const int userlen = username.length();
+	char* iuser = new char[userlen+1];
+	strcpy(iuser, username.c_str());
+	codeConvert.convert(iuser, strlen(iuser), userName, 1000);
 	cout<<username<<endl;
+
 	//发送的聊天内容
 	string content;
 	jis>>content;
 	cout<<"send content:"<<content<<endl;
+
+	
+	char Content[1000]={0};
+	const int contentlen = content.length();
+	char* icontent = new char[contentlen+1];
+	strcpy(icontent, content.c_str());
+	codeConvert.convert(icontent, strlen(icontent), Content, 1000);
+
 	MD5 md5;
 	int16 error_code = 0;
 	char error_msg[31] = {0};
@@ -45,7 +53,8 @@ void SendChatContent::Execute(SharedSession& session)
 	uint16 seq = 0;
 	jos<<cnt<<seq<<error_code;
 	jos.WriteBytes(error_msg, 30);
-	jos<<content;
+	jos<<userName;
+	jos<<Content;
 	jos<<"end";
 	size_t tailPos = jos.Length();
 	jos.Reposition(lengthPos);
